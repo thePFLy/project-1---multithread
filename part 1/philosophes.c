@@ -8,19 +8,23 @@ pour mettre en avant le coût des opérations de synchronisation.
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <semaphore.h>
 
 #define CYCLES 1000000
 
 pthread_mutex_t *baguettes;
+sem_t semaphore;
 int N;
 
-void* philosophe (void *arg) {
+void* philosophe(void *arg) {
     int id = *(int *)arg;
     int left = id;
     int right = (id + 1) % N;
 
     for (int i = 0; i < CYCLES; i++) {
-        // Ordre croissant -> éviter deadlock
+        sem_wait(&semaphore);
+
+        // Ordre croissant
         if (left < right) {
             pthread_mutex_lock(&baguettes[left]);
             pthread_mutex_lock(&baguettes[right]);
@@ -32,6 +36,8 @@ void* philosophe (void *arg) {
         // Manger
         pthread_mutex_unlock(&baguettes[left]);
         pthread_mutex_unlock(&baguettes[right]);
+
+        sem_post(&semaphore);
         // Penser
     }
     return NULL;
@@ -42,6 +48,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Usage: %s <nombre_de_philosophes>\n", argv[0]);
         return 1;
     }
+
     N = atoi(argv[1]);
     if (N <= 1) {
         fprintf(stderr, "Le nombre de philosophes doit être supérieur à 1.\n");
@@ -52,10 +59,14 @@ int main(int argc, char *argv[]) {
     int ids[N];
     baguettes = malloc(N * sizeof(pthread_mutex_t));
 
+    // mutex baguettes
     for (int i = 0; i < N; i++) {
         pthread_mutex_init(&baguettes[i], NULL);
     }
 
+    sem_init(&semaphore, 0, N - 1);
+
+    // threads philosophes
     for (int i = 0; i < N; i++) {
         ids[i] = i;
         pthread_create(&philosophes[i], NULL, philosophe, &ids[i]);
@@ -65,10 +76,12 @@ int main(int argc, char *argv[]) {
         pthread_join(philosophes[i], NULL);
     }
 
+    // Effacer et free
     for (int i = 0; i < N; i++) {
         pthread_mutex_destroy(&baguettes[i]);
     }
-
+    sem_destroy(&semaphore);
     free(baguettes);
+
     return 0;
 }
