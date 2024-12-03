@@ -5,6 +5,7 @@ Tâche 1.1 – Coder le problème des philosophes :
 - On n’utilise pas d’attente dans les phases manger et penser (ces actions sont immédiates)
 pour mettre en avant le coût des opérations de synchronisation.
 */
+
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
