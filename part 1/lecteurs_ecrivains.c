@@ -111,6 +111,7 @@ void* writer(void* arg) {
 }
 
 int main(int argc, char* argv[]) {
+    // arguments (erreur)
     if (argc != 3) {
         fprintf(stderr, "Usage: %s <nb_lecteurs> <nb_ecrivains>\n", argv[0]);
         return EXIT_FAILURE;
