@@ -21,49 +21,54 @@ la ressource CPU, en utilisant : for (int i=0; i<10000; i++);
 #define PROD 131072
 
 int buffer[BUFFER];
-int in = 0, out = 0;
-sem_t empty, full;
-pthread_mutex_t mutex;
+int position_in = 0, position_out = 0;
+sem_t sem_empty, sem_full;
+pthread_mutex_t mtx;
 
-void cpu_simulation() {
-    for (int i = 0; i < 10000; i++);
+void simulate_cpu_load() {
+    int j = 0;
+    while (j < 10000) j++;
 }
 
 // Pour chaque producteur
-void *producteur(void *arg) {
-    int id = *(int *)arg;
-    for (int i = 0; i < PROD; i++) {
-        sem_wait(&empty); 
-        pthread_mutex_lock(&mutex);
+void* producteur(void* arg) {
+    int id = *(int*)arg;
+    int i = 0;
+    while (i < PROD) {
+        sem_wait(&sem_empty); 
+        pthread_mutex_lock(&mtx);
 
-        buffer[in] = id;
-        in = (in + 1) % BUFFER;
+        buffer[position_in] = id;
+        position_in = (position_in + 1) % BUFFER;
 
-        pthread_mutex_unlock(&mutex);
-        sem_post(&full); 
+        pthread_mutex_unlock(&mtx);
+        sem_post(&sem_full); 
 
-        cpu_simulation();
+        simulate_cpu_load();
+        i++;
     }
     return NULL;
 }
 
-void *consommateur(void *arg) {
-    for (int i = 0; i < PROD; i++) {
-        sem_wait(&full);
-        pthread_mutex_lock(&mutex);
+void* consommateur(void* arg) {
+    int i = 0;
+    while (i < PROD) {
+        sem_wait(&sem_full);
+        pthread_mutex_lock(&mtx);
 
-        int item = buffer[out];
-        out = (out + 1) % BUFFER;
+        int item = buffer[position_out];
+        position_out = (position_out + 1) % BUFFER;
 
-        pthread_mutex_unlock(&mutex);
-        sem_post(&empty);
+        pthread_mutex_unlock(&mtx);
+        sem_post(&sem_empty);
         // zone crit
-        cpu_simulation();  
+        simulate_cpu_load();
+        i++;
     }
     return NULL;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     // 2 arguments exactement
     if (argc != 3) {
         fprintf(stderr, "Usage: %s <nb_producteurs> <nb_consommateurs>\n", argv[0]);
@@ -72,36 +77,43 @@ int main(int argc, char *argv[]) {
     // nbr de producteur et consommateur (grace aux arguments)
     int nb_producteurs = atoi(argv[1]);
     int nb_consommateurs = atoi(argv[2]);
+
     // prépare threads
     pthread_t producteurs[nb_producteurs], consommateurs[nb_consommateurs];
     int ids[nb_producteurs];
 
     // buffer
-    sem_init(&empty, 0, BUFFER);  
-    sem_init(&full, 0, 0);
-    pthread_mutex_init(&mutex, NULL);
-    // creation des thread producteurs
-    for (int i = 0; i < nb_producteurs; i++) {
-        ids[i] = i;
-        pthread_create(&producteurs[i], NULL, producteur, &ids[i]);
+    sem_init(&sem_empty, 0, BUFFER);  
+    sem_init(&sem_full, 0, 0);
+    pthread_mutex_init(&mtx, NULL);
+
+    // création threads producteurs
+    int k = nb_producteurs - 1;
+    while (k >= 0) {
+        ids[k] = k;
+        pthread_create(&producteurs[k], NULL, producteur, &ids[k]);
+        k--;
     }
-    // creation thread consmmateur
+    // création threads consommateurs
     for (int i = 0; i < nb_consommateurs; i++) {
         pthread_create(&consommateurs[i], NULL, consommateur, NULL);
     }
 
     // fin producteurs
-    for (int i = 0; i < nb_producteurs; i++) {
-        pthread_join(producteurs[i], NULL);
+    int j = 0;
+    while (j < nb_producteurs) {
+        pthread_join(producteurs[j], NULL);
+        j++;
     }
     // fin consommateurs
-    for (int i = 0; i < nb_consommateurs; i++) {
+    for (int i = nb_consommateurs - 1; i >= 0; i--) {
         pthread_join(consommateurs[i], NULL);
     }
-    // "destruction" semaphore + mutex
-    sem_destroy(&empty);
-    sem_destroy(&full);
-    pthread_mutex_destroy(&mutex);
+
+    // "destruction" sémaphores + mutex
+    sem_destroy(&sem_empty);
+    sem_destroy(&sem_full);
+    pthread_mutex_destroy(&mtx);
 
     return 0;
 }

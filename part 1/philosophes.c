@@ -15,12 +15,13 @@ pour mettre en avant le coût des opérations de synchronisation.
 pthread_mutex_t *baguettes;
 int N;
 
-void* philosophe (void *arg) {
+void* philosophe(void *arg) {
     int id = *(int *)arg;
     int left = id;
     int right = (id + 1) % N;
 
-    for (int i = 0; i < CYCLES; i++) {
+    int i = 0;
+    while (i < CYCLES) {
         // Ordre croissant -> éviter deadlock
         if (left < right) {
             pthread_mutex_lock(&baguettes[left]);
@@ -34,6 +35,7 @@ void* philosophe (void *arg) {
         pthread_mutex_unlock(&baguettes[left]);
         pthread_mutex_unlock(&baguettes[right]);
         // Penser
+        i++;
     }
     return NULL;
 }
@@ -54,27 +56,34 @@ int main(int argc, char *argv[]) {
     pthread_t philosophes[N];
     int ids[N];
 
+    // allocation mémoire pour les baguettes
     baguettes = malloc(N * sizeof(pthread_mutex_t));
 
     // mutex pour les baguettes
-    for (int i = 0; i < N; i++) {
-        pthread_mutex_init(&baguettes[i], NULL);
+    int j = 0;
+    while (j < N) {
+        pthread_mutex_init(&baguettes[j], NULL);
+        j++;
     }
 
     // création thread pour philosophes
-    for (int i = 0; i < N; i++) {
+    for (int i = N - 1; i >= 0; i--) {
         ids[i] = i;
         pthread_create(&philosophes[i], NULL, philosophe, &ids[i]);
     }
 
     // fin thread philosophes
-    for (int i = 0; i < N; i++) {
-        pthread_join(philosophes[i], NULL);
+    int k = 0;
+    while (k < N) {
+        pthread_join(philosophes[k], NULL);
+        k++;
     }
+
     // "destruction" mutex
-    for (int i = 0; i < N; i++) {
+    for (int i = N - 1; i >= 0; i--) {
         pthread_mutex_destroy(&baguettes[i]);
     }
+
     // libere mémoire allouée
     free(baguettes);
     return 0;
