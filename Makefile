@@ -4,7 +4,7 @@ DOSS_SRC_1 = part1
 SOURCES = $(DOSS_SRC_1)/philosophes.c $(DOSS_SRC_1)/producteurs_consommateurs.c $(DOSS_SRC_1)/lecteurs_ecrivains.c
 FICHIERS = $(DOSS_SRC_1)/philosophes $(DOSS_SRC_1)/producteurs_consommateurs $(DOSS_SRC_1)/lecteurs_ecrivains
 DOSS_RESULTATS_1 = part1/resultats
-EVAL_PERF = $(DOSS_SRC_1)/experiments.sh
+EVAL_PERF = experiments.sh
 
 
 all: $(FICHIERS)
