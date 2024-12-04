@@ -23,7 +23,7 @@ la ressource CPU, en utilisant : for (int i=0; i<10000; i++);
 int buffer[BUFFER];
 int position_in = 0, position_out = 0;
 sem_t sem_empty, sem_full;
-pthread_mutex_t mtx;
+pthread_mutex_t mtx_count;  // Mutex pour contrôler l'accès aux variables in/out
 
 void simulate_cpu_load() {
     int j = 0;
@@ -35,16 +35,16 @@ void* producteur(void* arg) {
     int id = *(int*)arg;
     int i = 0;
     while (i < PROD) {
-        sem_wait(&sem_empty); 
-        pthread_mutex_lock(&mtx);
+        sem_wait(&sem_empty);  // Attente d'une place libre dans le buffer
+        pthread_mutex_lock(&mtx_count);  // Protection des variables in/out
 
         buffer[position_in] = id;
         position_in = (position_in + 1) % BUFFER;
 
-        pthread_mutex_unlock(&mtx);
-        sem_post(&sem_full); 
+        pthread_mutex_unlock(&mtx_count);  // Libération du mutex sur in/out
+        sem_post(&sem_full);  // Un consommateur peut maintenant consommer
 
-        simulate_cpu_load();
+        simulate_cpu_load();  // Traitement en dehors de la zone critique
         i++;
     }
     return NULL;
@@ -53,67 +53,61 @@ void* producteur(void* arg) {
 void* consommateur(void* arg) {
     int i = 0;
     while (i < PROD) {
-        sem_wait(&sem_full);
-        pthread_mutex_lock(&mtx);
+        sem_wait(&sem_full);  // Attente de données dans le buffer
+        pthread_mutex_lock(&mtx_count);  // Protection des variables in/out
 
-        int item = buffer[position_out];
         position_out = (position_out + 1) % BUFFER;
 
-        pthread_mutex_unlock(&mtx);
-        sem_post(&sem_empty);
-        // zone crit
-        simulate_cpu_load();
+        pthread_mutex_unlock(&mtx_count);  // Libération du mutex sur in/out
+        sem_post(&sem_empty);  // Un producteur peut maintenant produire
+
+        simulate_cpu_load();  // Traitement en dehors de la zone critique
         i++;
     }
     return NULL;
 }
 
 int main(int argc, char* argv[]) {
-    // 2 arguments exactement
     if (argc != 3) {
         fprintf(stderr, "Usage: %s <nb_producteurs> <nb_consommateurs>\n", argv[0]);
         return 1;
     }
-    // nbr de producteur et consommateur (grace aux arguments)
+
     int nb_producteurs = atoi(argv[1]);
     int nb_consommateurs = atoi(argv[2]);
 
-    // prépare threads
     pthread_t producteurs[nb_producteurs], consommateurs[nb_consommateurs];
     int ids[nb_producteurs];
 
-    // buffer
     sem_init(&sem_empty, 0, BUFFER);  
     sem_init(&sem_full, 0, 0);
-    pthread_mutex_init(&mtx, NULL);
+    pthread_mutex_init(&mtx_count, NULL);  // Initialisation du mutex pour les compteurs
 
-    // création threads producteurs
-    int k = nb_producteurs - 1;
-    while (k >= 0) {
+    // Création des threads producteurs
+    for (int k = 0; k < nb_producteurs; k++) {
         ids[k] = k;
         pthread_create(&producteurs[k], NULL, producteur, &ids[k]);
-        k--;
     }
-    // création threads consommateurs
+
+    // Création des threads consommateurs
     for (int i = 0; i < nb_consommateurs; i++) {
         pthread_create(&consommateurs[i], NULL, consommateur, NULL);
     }
 
-    // fin producteurs
-    int j = 0;
-    while (j < nb_producteurs) {
+    // Attente de la fin des threads producteurs
+    for (int j = 0; j < nb_producteurs; j++) {
         pthread_join(producteurs[j], NULL);
-        j++;
     }
-    // fin consommateurs
-    for (int i = nb_consommateurs - 1; i >= 0; i--) {
+
+    // Attente de la fin des threads consommateurs
+    for (int i = 0; i < nb_consommateurs; i++) {
         pthread_join(consommateurs[i], NULL);
     }
 
-    // "destruction" sémaphores + mutex
+    // Destruction des sémaphores et mutex
     sem_destroy(&sem_empty);
     sem_destroy(&sem_full);
-    pthread_mutex_destroy(&mtx);
+    pthread_mutex_destroy(&mtx_count);
 
     return 0;
 }
