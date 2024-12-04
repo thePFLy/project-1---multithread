@@ -10,7 +10,7 @@ import pandas as pnd
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plot_results(csv_file, title, output_image):
+def pyplot_resultats(csv_file, title, output_image):
     # csv en arg
     data = pnd.read_csv(csv_file)
 
@@ -32,6 +32,6 @@ def plot_results(csv_file, title, output_image):
     plt.savefig(output_image)
     plt.clf()
 
-plot_results('resultats/philosophes.csv', 'Temps moyen par rapport au nombre de thread: Problème des philosophes', 'resultats/philosophes.png')
-plot_results('resultats/producteurs_consommateurs.csv', 'Temps moyen par rapport au nombre de thread: Producteurs consommateurs', 'resultats/producteurs_consommateurs.png')
-plot_results('resultats/lecteurs_ecrivains.csv', 'Temps moyen par rapport au nombre de thread: Lecteurs écrivains', 'resultats/lecteurs_ecrivains.png')
+pyplot_resultats('resultats/philosophes.csv', 'Temps moyen par rapport au nombre de thread: Problème des philosophes', 'resultats/philosophes.png')
+pyplot_resultats('resultats/producteurs_consommateurs.csv', 'Temps moyen par rapport au nombre de thread: Producteurs consommateurs', 'resultats/producteurs_consommateurs.png')
+pyplot_resultats('resultats/lecteurs_ecrivains.csv', 'Temps moyen par rapport au nombre de thread: Lecteurs écrivains', 'resultats/lecteurs_ecrivains.png')
