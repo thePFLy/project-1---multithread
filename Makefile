@@ -1,33 +1,34 @@
-# partie 1
+# Partie 1 : Variables
 DOSS_SRC_1 = part1
 SOURCES = $(DOSS_SRC_1)/philosophes.c $(DOSS_SRC_1)/producteurs_consommateurs.c $(DOSS_SRC_1)/lecteurs_ecrivains.c
 FICHIERS = $(DOSS_SRC_1)/philosophes $(DOSS_SRC_1)/producteurs_consommateurs $(DOSS_SRC_1)/lecteurs_ecrivains
 DOSS_RESULTATS_1 = $(DOSS_SRC_1)/resultats
 EVAL_PERF = $(DOSS_SRC_1)/eval_perf.sh
 
-
+# Cible principale
 all: $(FICHIERS)
+
 # Compilation partie 1
-philosophes.out: $(DOSS_SRC_1)/philosophes.c
-	gcc -Wall -pthread -o $@ $(DOSS_SRC_1)/philosophes.c
-producteurs_consommateurs.out: $(DOSS_SRC_1)/producteurs_consommateurs.c
-	gcc -Wall -pthread -o $@ $(DOSS_SRC_1)/producteurs_consommateurs.c
-lecteurs_ecrivains.out: $(DOSS_SRC_1)/lecteurs_ecrivains.c
-	gcc -Wall -pthread -o $@ $(DOSS_SRC_1)/lecteurs_ecrivains.c
+$(DOSS_SRC_1)/philosophes: $(DOSS_SRC_1)/philosophes.c
+	gcc -Wall -pthread -o $@ $<
+$(DOSS_SRC_1)/producteurs_consommateurs: $(DOSS_SRC_1)/producteurs_consommateurs.c
+	gcc -Wall -pthread -o $@ $<
+$(DOSS_SRC_1)/lecteurs_ecrivains: $(DOSS_SRC_1)/lecteurs_ecrivains.c
+	gcc -Wall -pthread -o $@ $<
 
-# Eval de performance
+# Évaluation des performances
 test: all
-	/usr/bin/bash $(EVAL_PERF)   # Lancement du script de test dans le répertoire part1
+	/usr/bin/bash $(EVAL_PERF)
 
-# Effacer fichiers/dossiers
+# Nettoyage
 clean:
 	rm -f $(FICHIERS)
 	rm -rf $(DOSS_RESULTATS_1)
 
-# help
+# Aide
 help:
-	@echo "cmds:"
-	@echo "make: Compilation."
-	@echo "make test: Evaluation de performance."
-	@echo "make clean: Suppression fihiers/dossiers."
-	@echo "make help: help."
+	@echo "Commandes disponibles :"
+	@echo "  make         : Compile tous les programmes."
+	@echo "  make test    : Évaluation des performances."
+	@echo "  make clean   : Nettoie les fichiers générés."
+	@echo "  make help    : Affiche cette aide."

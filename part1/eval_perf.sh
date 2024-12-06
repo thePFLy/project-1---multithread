@@ -16,37 +16,29 @@ test() {
     local threads=$2
     local output_file=$3
 
-    # csv
     echo "Threads,Temps moyen (s)" > "$output_file"
 
     for t in $threads; do
         total_time=0
 
-        # Cas ou deux types de threads
+        # 2 types de thread (diviser par 2)
         if [[ "$program" == "part1/producteurs_consommateurs" || "$program" == "part1/lecteurs_ecrivains" ]]; then
-            half_t=$((t / 2))  # consignes: on divise le nombre total de threads en deux
+            half_t=$((t / 2))
             for i in {1..5}; do
-                start=$(LC_NUMERIC=C date +%s.%N)
-                ./$program $half_t $half_t
-                end=$(LC_NUMERIC=C date +%s.%N)
-                elapsed=$(echo "$end - $start" | bc -l)  # temps écoulé
+                elapsed=$(/usr/bin/time -f "%e" ./$program $half_t $half_t 2>&1)
                 total_time=$(echo "$total_time + $elapsed" | bc -l)
             done
         else
             for i in {1..5}; do
-                start=$(LC_NUMERIC=C date +%s.%N)
-                ./$program $t
-                end=$(LC_NUMERIC=C date +%s.%N)
-                elapsed=$(echo "$end - $start" | bc -l)  # temps écoulé
+                elapsed=$(/usr/bin/time -f "%e" ./$program $t 2>&1)
                 total_time=$(echo "$total_time + $elapsed" | bc -l)
             done
         fi
 
-        # Calculer du temps, 3 décimales
+        # moyenne
         avg_time=$(echo "$total_time / 5" | bc -l)
         formatted_time=$(LC_NUMERIC=C printf "%.3f" "$avg_time")
-
-        # Ajouter au csv
+        
         echo "$t,$formatted_time" >> "$output_file"
     done
 }
