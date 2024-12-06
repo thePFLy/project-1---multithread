@@ -1,5 +1,5 @@
 # Tâche 1.4 - Écrire un script d’évaluation des performances
-# - Sur le modèle du précédent TD, mesurer la performance de chacun des trois programmes et
+# - Sur le modèle du précédent TD, mesurer la performance de chacun des trois programmemes et
 # la sauver dans des fichiers .csv en faisant attention à :
 # o Désactiver toute sortie sur STDOUT (car cela diminuerait les performances) ;
 # o Prendre 5 mesures pour chaque configuration avec les nombres de threads TOTAUX
@@ -12,34 +12,34 @@ exec 1>/dev/null
 mkdir -p part1/resultats
 
 test() {
-    local program=$1
+    local programme=$1
     local threads=$2
-    local output_file=$3
+    local output=$3
 
-    echo "Threads,Temps moyen (s)" > "$output_file"
+    echo "Threads,Temps moyen (s)" > "$output"
 
     for t in $threads; do
-        total_time=0
+        t_total=0
 
         # 2 types de thread (diviser par 2)
-        if [[ "$program" == "part1/producteurs_consommateurs" || "$program" == "part1/lecteurs_ecrivains" ]]; then
+        if [[ "$programme" == "part1/producteurs_consommateurs" || "$programme" == "part1/lecteurs_ecrivains" ]]; then
             half_t=$((t / 2))
             for i in {1..5}; do
-                elapsed=$(/usr/bin/time -f "%e" ./$program $half_t $half_t 2>&1)
-                total_time=$(echo "$total_time + $elapsed" | bc -l)
+                t_passé=$(/usr/bin/time -f "%e" ./$programme $half_t $half_t 2>&1)
+                t_total=$(echo "$t_total + $t_passé" | bc -l)
             done
         else
             for i in {1..5}; do
-                elapsed=$(/usr/bin/time -f "%e" ./$program $t 2>&1)
-                total_time=$(echo "$total_time + $elapsed" | bc -l)
+                t_passé=$(/usr/bin/time -f "%e" ./$programme $t 2>&1)
+                t_total=$(echo "$t_total + $t_passé" | bc -l)
             done
         fi
 
         # moyenne
-        avg_time=$(echo "$total_time / 5" | bc -l)
-        formatted_time=$(LC_NUMERIC=C printf "%.3f" "$avg_time")
+        t_moyen=$(echo "$t_total / 5" | bc -l)
+        formatted_time=$(LC_NUMERIC=C printf "%.3f" "$t_moyen")
         
-        echo "$t,$formatted_time" >> "$output_file"
+        echo "$t,$formatted_time" >> "$output"
     done
 }
 
