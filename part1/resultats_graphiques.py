@@ -20,7 +20,7 @@ def pyplot_resultats(csv_file, title, output_image):
     std_devs = data['Temps moyen (s)'].std()
 
     # donnéess
-    plt.errorbar(threads, times, yerr=std_devs, fmt='-o', capsize=5, label='Temps moyen')
+    plt.errorbar(threads, times, yerr=std_devs, fmt='-o', capsize=5, label='Temps moyen ± écart type')
     
     plt.xlabel('Nombre de threads')
     plt.ylabel('Temps d\'exécution (s)')
