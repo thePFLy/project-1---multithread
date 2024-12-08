@@ -8,48 +8,46 @@ typedef struct {
 
 // Initialisation du sémaphore
 void semaphore_init(semaphore_t *sem, int value) {
-    sem->value = value; // Initialiser le compteur du sémaphore
+    sem->value = value; // Initialisation du compteur du sémaphore
 }
 
-// Attente active (P operation) : décrémente le compteur ou attend
+// Attente active
 void semaphore_wait(semaphore_t *sem) {
     while (1) {
         // Utilisation d'une opération atomique pour vérifier si la ressource est disponible
         if (__sync_fetch_and_sub(&sem->value, 1) > 0) {
-            break; // La ressource est disponible, on entre dans la section critique
+            break;
         } else {
             // Si le sémaphore est à 0, on doit attendre activement
-            __sync_fetch_and_add(&sem->value, 1); // Restaurer le sémaphore à 1 si on était en attente
+            __sync_fetch_and_add(&sem->value, 1);
         }
     }
 }
 
-// Libération du sémaphore (V operation) : incrémente le compteur
+// Libération du sémaphore
 void semaphore_signal(semaphore_t *sem) {
     __sync_fetch_and_add(&sem->value, 1); // Incrémente atomiquement la valeur du sémaphore
 }
 
 // Fonction simulant une section critique
 void critical_section() {
-    // Simulation d'un travail en section critique
     for (int i = 0; i < 10000; i++) {
-        asm volatile("" ::: "memory"); // Simulation de calcul
+        asm volatile("" ::: "memory");
     }
 }
 
 // Fonction exécutée par chaque thread
 void *thread_func(void *arg) {
-    static semaphore_t sem; // Déclaration statique pour la synchronisation entre threads
+    static semaphore_t sem;
     static int initialized = 0;
 
     if (!initialized) {
-        semaphore_init(&sem, 1); // Initialiser le sémaphore avec 1 (binaire)
+        semaphore_init(&sem, 1); // Initialisation du sémaphore avec 1
         initialized = 1;
     }
 
-    // Attente active pour entrer dans la section critique
-    semaphore_wait(&sem);
-    critical_section();  // Exécution de la section critique
+    semaphore_wait(&sem); // Attente active pour entrer dans la section critique
+    critical_section(); // Exécution de la section critique
     semaphore_signal(&sem); // Libération du sémaphore
 
     return NULL;
@@ -69,7 +67,7 @@ int main(int argc, char *argv[]) {
 
     pthread_t threads[num_threads];
 
-    // Créer et exécuter les threads
+    // Création et exécution des threads
     for (int i = 0; i < num_threads; i++) {
         pthread_create(&threads[i], NULL, thread_func, NULL);
     }

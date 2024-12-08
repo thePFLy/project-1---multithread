@@ -8,7 +8,7 @@ typedef struct {
     int sections;
 } thread_params_t;
 
-// Verrou (spinlock) global
+// Verrou global
 volatile int lock = 0;
 
 // Fonction pour acquérir le verrou
@@ -29,6 +29,7 @@ void lock_ttas() {
     );
 }
 
+// Fonction pour libérer le verrou
 void unlock_ttas() {
     int value = 0;
     asm volatile (
@@ -42,7 +43,6 @@ void unlock_ttas() {
 // Section critique
 void critical_section() {
     for (int i = 0; i < 10000; i++) {
-        // Simulation d'un traitement CPU
         asm volatile("" ::: "memory");
     }
 }
@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
     pthread_t threads[num_threads];
     thread_params_t params[num_threads];
 
-    // Lancer les threads
+    // Lancement des threads
     for (int i = 0; i < num_threads; i++) {
         params[i].id = i;
         params[i].sections = sections_per_thread;

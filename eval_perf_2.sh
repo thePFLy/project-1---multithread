@@ -13,7 +13,7 @@ test() {
         total_time=0
 
         # Cas où deux types de threads (diviser par 2)
-        if [[ "$program" == "part1/producteurs_consommateurs" || "$program" == "part1/lecteurs_ecrivains" ]]; then
+        if [[ "$program" == "part2/producteurs_consommateurs_attente_active" || "$program" == "part2/lecteurs_ecrivains_attente_active" ]]; then
             half_t=$((t / 2))  # diviser le nombre total de threads en deux
             for i in {1..5}; do
                 # Mesurer le temps avec /usr/bin/time
@@ -38,6 +38,8 @@ test() {
 }
 
 # Lancer les tests pour chaque programme
-test "part2/spinlock_test_tas" "2 4 8 16 32" "part2/resultats/spinlock_test_tas.csv"
-test "part2/spinlock_test_ttas" "2 4 8 16 32" "part2/resultats/spinlock_test_ttas.csv"
-test "part2/semaphore_test" "2 4 8 16 32" "part2/resultats/semaphore_test.csv"
+test "part2/spinlock_test_tas" "1 2 4 8 16 32" "part2/resultats/spinlock_test_tas.csv"
+test "part2/spinlock_test_ttas" "1 2 4 8 16 32" "part2/resultats/spinlock_test_ttas.csv"
+test "part2/philosophes_attente_active" "2 4 8 16 32" "part2/resultats/philosophes_attente_active.csv"
+test "part2/producteurs_consommateurs_attente_active" "2 4 8 16 32" "part2/resultats/producteurs_consommateurs_attente_active.csv"
+test "part2/lecteurs_ecrivains_attente_active" "2 4 8 16 32" "part2/resultats/lecteurs_ecrivains_attente_active.csv"
