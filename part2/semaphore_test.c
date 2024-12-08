@@ -30,18 +30,15 @@ void semaphore_signal(semaphore_t *sem) {
 }
 
 // Fonction simulant une section critique
-void critical_section(int id) {
-    printf("Thread %d dans la section critique\n", id);
+void critical_section() {
     // Simulation d'un travail en section critique
     for (int i = 0; i < 10000; i++) {
         asm volatile("" ::: "memory"); // Simulation de calcul
     }
-    printf("Thread %d quitte la section critique\n", id);
 }
 
 // Fonction exécutée par chaque thread
 void *thread_func(void *arg) {
-    int id = *((int *)arg);
     static semaphore_t sem; // Déclaration statique pour la synchronisation entre threads
     static int initialized = 0;
 
@@ -52,7 +49,7 @@ void *thread_func(void *arg) {
 
     // Attente active pour entrer dans la section critique
     semaphore_wait(&sem);
-    critical_section(id);  // Exécution de la section critique
+    critical_section();  // Exécution de la section critique
     semaphore_signal(&sem); // Libération du sémaphore
 
     return NULL;
@@ -71,12 +68,10 @@ int main(int argc, char *argv[]) {
     }
 
     pthread_t threads[num_threads];
-    int ids[num_threads];
 
     // Créer et exécuter les threads
     for (int i = 0; i < num_threads; i++) {
-        ids[i] = i;
-        pthread_create(&threads[i], NULL, thread_func, &ids[i]);
+        pthread_create(&threads[i], NULL, thread_func, NULL);
     }
 
     // Attendre la fin des threads
